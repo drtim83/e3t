@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E3T — Engagement Estimation & Evaluation Tool</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <div>
+                <h1>E3T — Engagement Estimation & Evaluation Tool</h1>
+                <p class="subtitle">Resource Rates & Effort Planning Workbook</p>
+            </div>
+            <div class="header-left">
+                <div class="project-selector-wrap">
+                    <select id="project-select" class="project-select">
+                        <option value="">— New Project —</option>
+                    </select>
+                    <button id="project-delete" class="btn btn-sm btn-danger btn-header-del" title="Delete selected project" disabled>&times;</button>
+                </div>
+                <div class="project-actions">
+                    <button id="btn-new" class="btn btn-outline btn-header">New</button>
+                    <button id="btn-save" class="btn btn-outline btn-header">Save</button>
+                    <button id="btn-saveas" class="btn btn-outline btn-header">Save As</button>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="show-readme" class="btn btn-outline btn-header">Readme</button>
+                <button id="export-excel" class="btn btn-accent">Export Excel</button>
+                <button id="export-pdf" class="btn btn-accent">Export PDF</button>
+            </div>
+        </div>
+    </header>
+
+    <nav class="tabs">
+        <button class="tab-btn active" data-tab="config">Project</button>
+        <button class="tab-btn" data-tab="rate-card">Rates</button>
+        <button class="tab-btn" data-tab="resource-plan">Effort</button>
+        <button class="tab-btn" data-tab="pl-summary">P&L</button>
+        <button class="tab-btn" data-tab="forex">Forex</button>
+    </nav>
+
+    <main>
+        <!-- Config Tab -->
+        <section id="config" class="tab-content active">
+            <div class="section-header">Project Details</div>
+            <div class="config-grid">
+                <div class="config-row">
+                    <label>Customer Name</label>
+                    <input type="text" id="customer-name" class="input-cell" placeholder="Enter customer name">
+                </div>
+                <div class="config-row">
+                    <label>Project Name</label>
+                    <input type="text" id="project-name" class="input-cell" placeholder="Enter project name">
+                </div>
+                <div class="config-row">
+                    <label>Project / Opp ID</label>
+                    <input type="text" id="project-id" class="input-cell" placeholder="e.g. OPX-0020000290">
+                </div>
+                <div class="config-row">
+                    <label>Contract Type</label>
+                    <input type="text" id="contract-type" class="input-cell" placeholder="e.g. Fixed Price (FP)">
+                </div>
+                <div class="config-row">
+                    <label>Currency</label>
+                    <input type="text" id="currency" class="input-cell" readonly value="MYR">
+                </div>
+            </div>
+
+            <div class="section-header">Schedule & Effort Assumptions</div>
+            <div class="config-grid">
+                <div class="config-row">
+                    <label>Project Start Date</label>
+                    <input type="date" id="start-date" class="input-cell">
+                </div>
+                <div class="config-row">
+                    <label>Project Duration (Months)</label>
+                    <input type="number" id="duration" class="input-cell" min="1" max="120" step="1">
+                </div>
+                <div class="config-row">
+                    <label>Working Hours per Month</label>
+                    <input type="number" id="hours-per-month" class="input-cell" min="1" step="1">
+                </div>
+                <div class="config-row">
+                    <label>Risk Reserve (%)</label>
+                    <input type="number" id="risk-reserve" class="input-cell" min="0" max="100" step="0.01">
+                </div>
+                <div class="config-row">
+                    <label>Global Discount (%)</label>
+                    <input type="number" id="global-discount" class="input-cell" min="0" max="100" step="0.01">
+                </div>
+                <div class="config-row">
+                    <label>Global Allowance (%)</label>
+                    <input type="number" id="global-allowance" class="input-cell" min="0" max="100" step="0.01">
+                </div>
+                <div class="config-row">
+                    <label>Display Currency</label>
+                    <select id="display-currency" class="input-cell" style="cursor:pointer;">
+                        <option value="MYR">MYR only</option>
+                    </select>
+                </div>
+                <div class="config-row">
+                    <label>Secondary Currency</label>
+                    <select id="secondary-currency" class="input-cell" style="cursor:pointer;">
+                        <option value="MYR">MYR only</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-header">Derived Metrics (read-only)</div>
+            <div class="config-grid">
+                <div class="config-row">
+                    <label>Total Project Months</label>
+                    <span id="total-months" class="calc-cell">0</span>
+                </div>
+                <div class="config-row">
+                    <label>Effective Hrs/Project</label>
+                    <span id="effective-hours" class="calc-cell">0</span>
+                </div>
+                <div class="config-row">
+                    <label>Project End Date</label>
+                    <span id="end-date" class="calc-cell">-</span>
+                </div>
+            </div>
+
+            <div class="config-actions">
+                <button id="reset-config" class="btn btn-outline">Reset to Defaults</button>
+            </div>
+
+            <div class="section-header">Colour Legend</div>
+            <div class="legend">
+                <div class="legend-item">
+                    <span class="legend-swatch input-swatch"></span>
+                    <span>Blue text, yellow fill &mdash; User input (editable)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-swatch calc-swatch"></span>
+                    <span>Black text, white fill &mdash; Calculated value</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-swatch total-swatch"></span>
+                    <span>Green text, green fill &mdash; Totals / summary</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Rate Card Tab -->
+        <section id="rate-card" class="tab-content">
+            <div class="section-header-row">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="width:3px;height:16px;background:var(--accent);border-radius:2px;"></span>
+                    <span>Labor Rate Card | MYR per Hour</span>
+                </div>
+                <div class="table-actions">
+                    <button id="rc-add" class="btn btn-sm">+ Add Rate</button>
+                    <button id="rc-edit" class="btn btn-sm btn-outline" disabled>Edit</button>
+                    <button id="rc-delete" class="btn btn-sm btn-danger" disabled>Delete</button>
+                </div>
+            </div>
+            <table class="data-table rate-card-table">
+                <thead>
+                    <tr>
+                        <th class="th-select"><input type="checkbox" id="rc-select-all"></th>
+                        <th>Job Code</th>
+                        <th>Role Title</th>
+                        <th>Category</th>
+                        <th>List Price (MYR/hr)</th>
+                        <th>Std Cost Rate (MYR/hr)</th>
+                        <th>Delivery Margin %</th>
+                    </tr>
+                </thead>
+                <tbody id="rate-card-body"></tbody>
+                <tfoot>
+                    <tr id="rate-card-avg">
+                        <td></td>
+                        <td colspan="3">Blended Average</td>
+                        <td id="avg-list"></td>
+                        <td id="avg-cost"></td>
+                        <td id="avg-margin"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </section>
+
+        <!-- Resource Plan Tab -->
+        <section id="resource-plan" class="tab-content">
+            <div class="resource-plan-header" id="rp-banner"></div>
+            <div class="rp-controls">
+                <label>Visible Months:
+                    <select id="visible-months">
+                        <option value="12">12 (1 Year)</option>
+                        <option value="24">24 (2 Years)</option>
+                        <option value="36">36 (3 Years)</option>
+                        <option value="48">48 (4 Years)</option>
+                        <option value="60" selected>60 (5 Years)</option>
+                    </select>
+                </label>
+                <button id="add-resource" class="btn">+ Add Resource</button>
+                <button id="delete-selected-resources" class="btn btn-danger btn-sm" disabled>Delete Selected</button>
+            </div>
+            <div class="rp-scroll-wrapper">
+                <table class="data-table resource-plan-table">
+                    <thead id="rp-thead"></thead>
+                    <tbody id="rp-tbody"></tbody>
+                    <tfoot id="rp-tfoot"></tfoot>
+                </table>
+            </div>
+        </section>
+
+        <!-- P&L Summary Tab -->
+        <section id="pl-summary" class="tab-content">
+            <div class="section-header" id="pl-banner"></div>
+
+            <div class="section-header">Resource-Level Summary</div>
+            <table class="data-table summary-table">
+                <thead>
+                    <tr>
+                        <th>Resource Name</th>
+                        <th>Role Title</th>
+                        <th>Category</th>
+                        <th>Total PM</th>
+                        <th>Revenue (MYR)</th>
+                        <th>Cost (MYR)</th>
+                        <th>Margin %</th>
+                    </tr>
+                </thead>
+                <tbody id="summary-tbody"></tbody>
+                <tfoot>
+                    <tr id="summary-totals">
+                        <td colspan="3">TOTALS</td>
+                        <td id="s-total-pm"></td>
+                        <td id="s-total-rev"></td>
+                        <td id="s-total-cost"></td>
+                        <td id="s-total-margin"></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="section-header">Category Breakdown</div>
+            <table class="data-table summary-table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Total PM</th>
+                        <th>Revenue (MYR)</th>
+                        <th>Cost (MYR)</th>
+                        <th>Margin %</th>
+                    </tr>
+                </thead>
+                <tbody id="category-tbody"></tbody>
+                <tfoot>
+                    <tr id="category-totals">
+                        <td>GRAND TOTAL</td>
+                        <td id="c-total-pm"></td>
+                        <td id="c-total-rev"></td>
+                        <td id="c-total-cost"></td>
+                        <td id="c-total-margin"></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="section-header">Key P&L Metrics</div>
+            <table class="data-table metrics-table">
+                <tbody id="metrics-tbody"></tbody>
+            </table>
+
+            <div class="section-header">Year-by-Year Breakdown</div>
+            <table class="data-table summary-table" id="year-breakdown-table">
+                <thead>
+                    <tr>
+                        <th>Year</th>
+                        <th>Total PM</th>
+                        <th>Revenue (MYR)</th>
+                        <th>Total Cost (MYR)</th>
+                        <th>Gross Margin (MYR)</th>
+                        <th>Margin %</th>
+                    </tr>
+                </thead>
+                <tbody id="year-breakdown-tbody"></tbody>
+                <tfoot>
+                    <tr id="year-breakdown-totals">
+                        <td>GRAND TOTAL</td>
+                        <td id="yb-total-pm"></td>
+                        <td id="yb-total-rev"></td>
+                        <td id="yb-total-cost"></td>
+                        <td id="yb-total-margin"></td>
+                        <td id="yb-total-margin-pct"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </section>
+
+        <!-- Forex Tab -->
+        <section id="forex" class="tab-content">
+            <div class="section-header-row">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="width:3px;height:16px;background:var(--accent);border-radius:2px;"></span>
+                    <span>Foreign Exchange Rates</span>
+                </div>
+                <div class="table-actions">
+                    <button id="fx-add" class="btn btn-sm">+ Add Currency</button>
+                    <button id="fx-edit" class="btn btn-sm btn-outline" disabled>Edit</button>
+                    <button id="fx-delete" class="btn btn-sm btn-danger" disabled>Delete</button>
+                </div>
+            </div>
+
+            <div class="section-header">Currency List (Rate per 1 MYR)</div>
+            <table class="data-table forex-table">
+                <thead>
+                    <tr>
+                        <th class="th-select"><input type="checkbox" id="fx-select-all"></th>
+                        <th>Currency Code</th>
+                        <th>Currency Name</th>
+                        <th>Rate (per 1 MYR)</th>
+                        <th>1 Foreign = ? MYR</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody id="fx-tbody"></tbody>
+            </table>
+
+            <div class="section-header">Convert Project Totals</div>
+            <div class="forex-convert-card">
+                <div class="convert-row">
+                    <label>Convert To</label>
+                    <select id="fx-convert-select" class="convert-select"></select>
+                </div>
+                <div class="convert-divider"></div>
+                <div class="convert-grid" id="convert-results"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal: Rate Card Add/Edit -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-title">Add Rate</h3>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Job Code</label>
+                    <input type="text" id="modal-code" class="modal-input">
+                </div>
+                <div class="form-group">
+                    <label>Role Title</label>
+                    <input type="text" id="modal-title-input" class="modal-input">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="modal-category" class="modal-input">
+                        <option value="Technology">Technology</option>
+                        <option value="Consulting">Consulting</option>
+                        <option value="Development">Development</option>
+                        <option value="Architecture">Architecture</option>
+                        <option value="Project Management">Project Management</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>List Price (MYR/hr)</label>
+                        <input type="number" id="modal-list" class="modal-input" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Std Cost Rate (MYR/hr)</label>
+                        <input type="number" id="modal-cost" class="modal-input" step="0.01" min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Margin %</label>
+                    <span id="modal-margin-preview" class="calc-cell">-</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-cancel" class="btn btn-outline">Cancel</button>
+                <button id="modal-save" class="btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print frame for PDF export -->
+    <iframe id="print-frame" class="hidden"></iframe>
+
+    <!-- Readme Modal -->
+    <div id="readme-overlay" class="modal-overlay hidden">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h3>E3T — Business Logic & Formulas Reference</h3>
+                <button class="modal-close" id="readme-close">&times;</button>
+            </div>
+            <div class="modal-body readme-content">
+                <h2>Overview</h2>
+                <p>E3T (Engagement Estimation &amp; Evaluation Tool) is a resource rates and effort planning workbook. It calculates project cost, revenue, and margin based on labor rates, effort allocation, and commercial assumptions.</p>
+
+                <h2>Tabs &amp; Purpose</h2>
+                <table>
+                    <thead><tr><th>Tab</th><th>Purpose</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>Project</strong></td><td>Project metadata, schedule assumptions, and commercial terms (discount, allowance, risk reserve).</td></tr>
+                        <tr><td><strong>Rates</strong></td><td>Labor rate card — list price and standard cost per role (MYR/hour).</td></tr>
+                        <tr><td><strong>Effort</strong></td><td>60-month resource allocation grid. Enter person-months (PM) per resource per calendar month.</td></tr>
+                        <tr><td><strong>P&amp;L</strong></td><td>Profit &amp; Loss summary with resource-level, category-level, and key metrics.</td></tr>
+                    </tbody>
+                </table>
+
+                <h2>Formulas</h2>
+
+                <h3>1. Sell Price</h3>
+                <pre>Sell Price = List Price × (1 − Global Discount %) × (1 + Global Allowance %)</pre>
+                <p>The sell price is the effective billing rate after applying the negotiated discount and any contractual allowance uplift.</p>
+
+                <h3>2. Total Person-Months (PM)</h3>
+                <pre>Total PM = Σ(monthly PM allocations for all 60 months)</pre>
+                <p>Sum of effort values across all visible months for a given resource row.</p>
+
+                <h3>3. Total Hours</h3>
+                <pre>Total Hours = Total PM × Working Hours per Month</pre>
+                <p>Working Hours per Month is configured in the Project tab (default: 146 hrs/month).</p>
+
+                <h3>4. Revenue</h3>
+                <pre>Revenue = Total Hours × Sell Price</pre>
+
+                <h3>5. Cost</h3>
+                <pre>Cost = Total Hours × Standard Cost Rate</pre>
+                <p>Standard Cost Rate is sourced from the Rate Card tab per job code.</p>
+
+                <h3>6. Gross Margin</h3>
+                <pre>Gross Margin (MYR) = Revenue − Cost</pre>
+                <pre>Gross Margin % = (Revenue − Cost) / Revenue</pre>
+                <p>Delivery Margin % on the Effort tab is calculated at the individual resource level. Project-level margin aggregates all resources.</p>
+
+                <h3>7. Risk Reserve</h3>
+                <pre>Risk Reserve (MYR) = Total Revenue × Risk Reserve %</pre>
+                <p>Applied as a percentage of total revenue to account for project delivery risk.</p>
+
+                <h3>8. Blended Rates</h3>
+                <pre>Blended Sell Rate = Total Revenue / Total Hours (across all resources)</pre>
+                <pre>Blended Cost Rate = Total Cost / Total Hours (across all resources)</pre>
+
+                <h2>Rate Card Logic</h2>
+                <p>Each role in the Rate Card has:</p>
+                <ul>
+                    <li><strong>List Price</strong> — published standard hourly rate (MYR/hr)</li>
+                    <li><strong>Std Cost Rate</strong> — internal cost to deliver (MYR/hr)</li>
+                    <li><strong>Delivery Margin %</strong> — (List − Cost) / List</li>
+                    <li><strong>Blended Average</strong> — arithmetic mean of all rates in the card</li>
+                </ul>
+
+                <h2>Effort Grid</h2>
+                <p>Effort is entered in <strong>Person-Months (PM)</strong> per calendar month. A value of 1.0 represents one full resource for that month. Values may be fractional (e.g., 0.5 = half-time).</p>
+                <p>Each resource row pulls List Price and Cost Rate from the Rate Card based on the selected Job Code.</p>
+
+                <h2>P&amp;L Summary</h2>
+                <table>
+                    <thead><tr><th>Metric</th><th>Source</th></tr></thead>
+                    <tbody>
+                        <tr><td>Gross Revenue</td><td>Sum of all resource revenues</td></tr>
+                        <tr><td>Total Cost</td><td>Sum of all resource costs (excl. risk reserve)</td></tr>
+                        <tr><td>Gross Margin</td><td>Revenue − Cost</td></tr>
+                        <tr><td>Risk Reserve</td><td>Revenue × Risk Reserve %</td></tr>
+                        <tr><td>TCV (Total Contract Value)</td><td>Equals Gross Revenue</td></tr>
+                    </tbody>
+                </table>
+
+                <h2>Export Formats</h2>
+                <ul>
+                    <li><strong>Excel (.xlsx)</strong> — generates a multi-sheet workbook (Config, Rate Card, Resource Plan) with formulas and formatting matching the original E3T workbook structure.</li>
+                    <li><strong>PDF</strong> — uses the browser print dialog with a print-optimized stylesheet for clean output.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button id="readme-done" class="btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save As Modal -->
+    <div id="saveas-overlay" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="saveas-title">Save Project</h3>
+                <button class="modal-close" id="saveas-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Project Name</label>
+                    <input type="text" id="saveas-name" class="modal-input" placeholder="e.g. Acme Corp — Data Platform">
+                </div>
+                <div id="saveas-warning" class="saveas-warn hidden">A project with this name already exists. It will be overwritten.</div>
+            </div>
+            <div class="modal-footer">
+                <button id="saveas-cancel" class="btn btn-outline">Cancel</button>
+                <button id="saveas-confirm" class="btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Load Modal -->
+    <div id="loadconfirm-overlay" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Unsaved Changes</h3>
+                <button class="modal-close" id="loadconfirm-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>You have unsaved changes. Loading another project will discard them.</p>
+                <p>Would you like to save first?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="loadconfirm-discard" class="btn btn-danger">Discard &amp; Load</button>
+                <button id="loadconfirm-save" class="btn">Save &amp; Load</button>
+                <button id="loadconfirm-cancel" class="btn btn-outline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- Forex Add/Edit Modal -->
+    <div id="fx-modal-overlay" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="fx-modal-title">Add Currency</h3>
+                <button class="modal-close" id="fx-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Currency Code</label>
+                    <input type="text" id="fx-modal-code" class="modal-input" placeholder="e.g. USD" maxlength="3">
+                </div>
+                <div class="form-group">
+                    <label>Currency Name</label>
+                    <input type="text" id="fx-modal-name" class="modal-input" placeholder="e.g. US Dollar">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Rate (per 1 MYR)</label>
+                        <input type="number" id="fx-modal-rate" class="modal-input" step="0.0001" min="0" placeholder="e.g. 0.2245">
+                    </div>
+                    <div class="form-group">
+                        <label>1 Foreign = ? MYR</label>
+                        <span id="fx-modal-inverse" class="calc-cell">-</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="fx-modal-cancel" class="btn btn-outline">Cancel</button>
+                <button id="fx-modal-save" class="btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="static/js/app.js"></script>
+</body>
+</html>
