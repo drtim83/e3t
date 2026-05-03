@@ -39,3 +39,5 @@ Simply double-click `index.html` or run:
 ## 🔒 Privacy
 - 100% client-side. No data is sent to any server.
 - Project data is saved in your browser's local storage.
+
+Created by Dr. Ming Chan Tok 1st May 2026
